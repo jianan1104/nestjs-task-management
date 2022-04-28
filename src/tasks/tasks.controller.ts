@@ -17,34 +17,51 @@ import { Task } from './task.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/auth/user.entity';
+import { Logger } from '@nestjs/common';
 
 @Controller('tasks')
 @UseGuards(AuthGuard())
 export class TasksController {
+  private logger = new Logger('TasksController');
   constructor(private tasksService: TasksService) {}
 
   @Get()
-  getTasks(@Query() filterDTO: GetTasksFilterDTO, @GetUser() user: User): Promise<Task[]> {
+  getTasks(
+    @Query() filterDTO: GetTasksFilterDTO,
+    @GetUser() user: User,
+  ): Promise<Task[]> {
+    this.logger.verbose(
+      `User "${user.username}" retrieving all tasks, Filters: ${JSON.stringify(filterDTO)}`,
+    );
     return this.tasksService.getTasks(filterDTO, user);
   }
 
   // http://localhost:3000/tasks/:id
   @Get('/:id')
   getTaskByID(@Param('id') id: string, @GetUser() user: User): Promise<Task> {
-      return this.tasksService.getTaskByID(id, user);
+    this.logger.verbose(
+      `User "${user.username}" retrieving task, ID: ${id}`,
+    );
+    return this.tasksService.getTaskByID(id, user);
   }
 
   @Post()
   createTask(
     @Body() createTaskDTO: CreateTaskDTO,
-    @GetUser() user: User
-    ): Promise<Task> {
+    @GetUser() user: User,
+  ): Promise<Task> {
+    this.logger.verbose(
+      `User "${user.username}" create task, Data: ${JSON.stringify(createTaskDTO)}`,
+    );
     return this.tasksService.createTask(createTaskDTO, user);
   }
 
   // http://localhost:3000/tasks/:id
   @Delete('/:id')
-  deleteTaskByID(@Param('id') id: string, @GetUser() user: User): Promise<void> {
+  deleteTaskByID(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<void> {
     return this.tasksService.deleteTaskByID(id, user);
   }
 
@@ -55,7 +72,7 @@ export class TasksController {
     @Body() updateTaskStatusDTO: UpdateTaskStatusDTO,
     @GetUser() user: User,
   ): Promise<Task> {
-      const { status } = updateTaskStatusDTO;
-      return this.tasksService.updateTaskStatus(id, status, user);
+    const { status } = updateTaskStatusDTO;
+    return this.tasksService.updateTaskStatus(id, status, user);
   }
 }
